@@ -147,6 +147,55 @@ def upload_video():
         'size': os.path.getsize(file_path)
     })
 
+@app.route('/api/upload-url', methods=['POST'])
+def upload_from_url():
+    """Download video from URL and save it"""
+    import requests
+    
+    data = request.json
+    video_url = data.get('url')
+    
+    if not video_url:
+        return jsonify({'error': 'No URL provided'}), 400
+    
+    try:
+        # Download video from URL
+        response = requests.get(video_url, stream=True, timeout=30)
+        response.raise_for_status()
+        
+        # Determine file extension from URL or Content-Type
+        file_ext = '.mp4'  # default
+        if video_url.lower().endswith(('.mp4', '.mov', '.avi', '.webm')):
+            file_ext = Path(video_url).suffix
+        elif 'content-type' in response.headers:
+            content_type = response.headers['content-type']
+            if 'mp4' in content_type:
+                file_ext = '.mp4'
+            elif 'webm' in content_type:
+                file_ext = '.webm'
+            elif 'quicktime' in content_type:
+                file_ext = '.mov'
+        
+        # Generate unique filename
+        unique_filename = f"{uuid.uuid4()}{file_ext}"
+        file_path = UPLOAD_FOLDER / unique_filename
+        
+        # Save file
+        with open(file_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        
+        return jsonify({
+            'filename': unique_filename,
+            'path': str(file_path),
+            'size': os.path.getsize(file_path)
+        })
+        
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Failed to download video: {str(e)}'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Error processing video: {str(e)}'}), 500
+
 @app.route('/api/jobs', methods=['POST'])
 def create_job():
     """Create a new transformation job"""

@@ -483,6 +483,50 @@
   color: #94a3b8;
 }
 
+.url-upload-button, .copy-link-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.copy-link-button {
+  padding: 1rem;
+  background: #f1f5f9;
+  color: #667eea;
+}
+
+.url-upload-button:hover:not(:disabled),
+.copy-link-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.copy-link-button:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.url-upload-button:disabled,
+.copy-link-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.url-upload-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+}
+
 .url-hint {
   margin: 0;
   padding: 0.75rem 1rem;

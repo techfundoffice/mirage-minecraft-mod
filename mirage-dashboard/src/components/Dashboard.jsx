@@ -72,7 +72,7 @@ function Dashboard() {
     refetchInterval: 5000
   })
 
-  // Upload mutation
+  // Upload mutation (file)
   const uploadMutation = useMutation({
     mutationFn: async (file) => {
       const formData = new FormData()
@@ -93,6 +93,27 @@ function Dashboard() {
         input_file: data.filename,
         style: selectedStyle
       })
+    }
+  })
+
+  // Upload mutation (URL)
+  const uploadUrlMutation = useMutation({
+    mutationFn: async (url) => {
+      setIsDownloadingFromUrl(true)
+      const response = await axios.post(`${API_URL}/upload-url`, { url })
+      return response.data
+    },
+    onSuccess: (data) => {
+      setIsDownloadingFromUrl(false)
+      // Automatically create job after download
+      createJobMutation.mutate({
+        input_file: data.filename,
+        style: selectedStyle
+      })
+      setVideoUrl('') // Clear URL input
+    },
+    onError: () => {
+      setIsDownloadingFromUrl(false)
     }
   })
 
@@ -120,6 +141,19 @@ function Dashboard() {
     if (selectedFile) {
       uploadMutation.mutate(selectedFile)
     }
+  }
+
+  const handleUrlUpload = () => {
+    if (videoUrl && videoUrl.trim()) {
+      uploadUrlMutation.mutate(videoUrl.trim())
+    }
+  }
+
+  const copyShareableLink = () => {
+    const baseUrl = window.location.origin + window.location.pathname
+    const shareUrl = `${baseUrl}?url=${encodeURIComponent(videoUrl)}&style=${selectedStyle}`
+    navigator.clipboard.writeText(shareUrl)
+    alert('Shareable link copied to clipboard!')
   }
 
   const handleUrlDownload = async () => {
@@ -332,6 +366,52 @@ function Dashboard() {
               </>
             )}
           </button>
+        </div>
+
+        {/* URL Upload */}
+        <div className="url-upload-section">
+          <h3>Or Provide Video URL</h3>
+          <div className="url-controls">
+            <input
+              type="url"
+              className="url-input"
+              placeholder="https://example.com/video.mp4"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              disabled={isDownloadingFromUrl || uploadUrlMutation.isPending}
+            />
+            <button
+              className="url-upload-button"
+              onClick={handleUrlUpload}
+              disabled={!videoUrl || isDownloadingFromUrl || uploadUrlMutation.isPending}
+            >
+              {isDownloadingFromUrl || uploadUrlMutation.isPending ? (
+                <>
+                  <RefreshCw size={20} className="spin" />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Download size={20} />
+                  Transform from URL
+                </>
+              )}
+            </button>
+            {videoUrl && (
+              <button
+                className="copy-link-button"
+                onClick={copyShareableLink}
+                title="Copy shareable link"
+              >
+                <TrendingUp size={20} />
+              </button>
+            )}
+          </div>
+          {videoUrl && (
+            <p className="url-hint">
+              💡 Tip: The generated link will pre-fill this URL and style for easy sharing!
+            </p>
+          )}
         </div>
 
         {/* URL Input */}
