@@ -23,9 +23,25 @@ const API_URL = import.meta.env.VITE_API_URL ||
 
 function Dashboard() {
   const [selectedFile, setSelectedFile] = useState(null)
+  const [videoUrl, setVideoUrl] = useState('')
   const [selectedStyle, setSelectedStyle] = useState('minecraft')
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isDownloadingFromUrl, setIsDownloadingFromUrl] = useState(false)
   const queryClient = useQueryClient()
+
+  // Check URL parameters on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlParam = urlParams.get('url')
+    const styleParam = urlParams.get('style')
+    
+    if (urlParam) {
+      setVideoUrl(decodeURIComponent(urlParam))
+    }
+    if (styleParam && ['minecraft', 'anime', 'cyberpunk', 'default'].includes(styleParam)) {
+      setSelectedStyle(styleParam)
+    }
+  }, [])
 
   // Fetch available styles
   const { data: styles = [] } = useQuery({
@@ -103,6 +119,39 @@ function Dashboard() {
   const handleUpload = () => {
     if (selectedFile) {
       uploadMutation.mutate(selectedFile)
+    }
+  }
+
+  const handleUrlDownload = async () => {
+    if (!videoUrl) {
+      alert('Please enter a video URL')
+      return
+    }
+
+    setIsDownloadingFromUrl(true)
+    try {
+      // Download video from URL
+      const response = await axios.get(videoUrl, {
+        responseType: 'blob',
+        onDownloadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          setUploadProgress(progress)
+        }
+      })
+
+      // Create a file from the blob
+      const filename = videoUrl.split('/').pop().split('?')[0] || 'video.mp4'
+      const file = new File([response.data], filename, { type: 'video/mp4' })
+
+      // Upload the file
+      uploadMutation.mutate(file)
+      setVideoUrl('')
+    } catch (error) {
+      console.error('Failed to download from URL:', error)
+      alert('Failed to download video from URL. Please check the URL and try again.')
+      setUploadProgress(0)
+    } finally {
+      setIsDownloadingFromUrl(false)
     }
   }
 
@@ -283,6 +332,41 @@ function Dashboard() {
               </>
             )}
           </button>
+        </div>
+
+        {/* URL Input */}
+        <div className="url-input-section">
+          <h3>Or Load from URL</h3>
+          <div className="url-controls">
+            <input
+              type="text"
+              className="url-input"
+              placeholder="Enter video URL (e.g., https://example.com/video.mp4)"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleUrlDownload()}
+            />
+            <button
+              className="upload-button"
+              onClick={handleUrlDownload}
+              disabled={!videoUrl || isDownloadingFromUrl || uploadMutation.isPending}
+            >
+              {isDownloadingFromUrl ? (
+                <>
+                  <RefreshCw size={20} className="spin" />
+                  Downloading... {uploadProgress}%
+                </>
+              ) : (
+                <>
+                  <Download size={20} />
+                  Load from URL
+                </>
+              )}
+            </button>
+          </div>
+          <p className="url-hint">
+            💡 Tip: You can prepopulate the URL by adding ?url=VIDEO_URL&style=STYLE to the page URL
+          </p>
         </div>
 
         {uploadMutation.isError && (
