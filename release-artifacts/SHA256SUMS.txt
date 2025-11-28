@@ -1,0 +1,2 @@
+61b729d3d0c30fc2ad68b3517b1af347f863d1aceaceffa631dd2873ce75b936  mirage-minecraft-mod-1.0.0-sources.jar
+041cdc0747e6aca6d4d08cc49c685cae3a2bd2f54bf3d4ddb0b7d8e89c893531  mirage-minecraft-mod-1.0.0.jar
