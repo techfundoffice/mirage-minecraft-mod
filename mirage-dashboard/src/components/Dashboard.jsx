@@ -15,7 +15,11 @@ import {
 import axios from 'axios'
 import './Dashboard.css'
 
-const API_URL = 'http://localhost:5000/api'
+// Use environment variable or detect sandbox environment
+const API_URL = import.meta.env.VITE_API_URL || 
+  (window.location.hostname.includes('sandbox') 
+    ? `${window.location.protocol}//${window.location.hostname.replace('5173', '5000')}/api`
+    : 'http://localhost:5000/api')
 
 function Dashboard() {
   const [selectedFile, setSelectedFile] = useState(null)
