@@ -1,0 +1,56 @@
+{
+  "1": {
+    "inputs": {
+      "video_path": "input_video.mp4",
+      "frame_rate": 20,
+      "width": 512,
+      "height": 512
+    },
+    "class_type": "MirageVideoInput",
+    "_meta": {
+      "title": "Load Video"
+    }
+  },
+  "2": {
+    "inputs": {
+      "api_key": "YOUR_API_KEY_HERE",
+      "enabled": true
+    },
+    "class_type": "MirageConnect",
+    "_meta": {
+      "title": "Connect to Mirage"
+    }
+  },
+  "3": {
+    "inputs": {
+      "session": ["2", 0],
+      "images": ["1", 0],
+      "prompt": "minecraft style, blocky textures, pixelated",
+      "enhance_prompt": false
+    },
+    "class_type": "MirageTransform",
+    "_meta": {
+      "title": "Transform with Mirage"
+    }
+  },
+  "4": {
+    "inputs": {
+      "images": ["3", 0],
+      "output_path": "output_mirage.mp4",
+      "fps": 20
+    },
+    "class_type": "MirageVideoOutput",
+    "_meta": {
+      "title": "Save Output"
+    }
+  },
+  "5": {
+    "inputs": {
+      "session": ["2", 0]
+    },
+    "class_type": "MirageDisconnect",
+    "_meta": {
+      "title": "Disconnect"
+    }
+  }
+}
